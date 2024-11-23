@@ -1,19 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { useQuery } from 'react-query';
 import './App.css';
+import ReactMarkdown from 'react-markdown';
 
 const fetchSearchResults = async (query: string) => {
   const response = await fetch(
-    `https://etai-backend-537a5149f0b1.herokuapp.com/query?query=${query}`,
+    `https://etai-backend-537a5149f0b1.herokuapp.com/query?question=${query}`,
   );
   if (!response.ok) {
     throw new Error('Error fetching search results');
   }
   return response.json();
-};
-
-const removeTags = (html: string) => {
-  return html.replace(/<\/?i>/g, '');
 };
 
 function App() {
@@ -26,7 +23,7 @@ function App() {
 
   const { data, error, isLoading, refetch } = useQuery(
     ['search'],
-    () => fetchSearchResults(input),
+    () => fetchSearchResults(inputRef.current?.value || ''),
     {
       enabled: false,
     },
@@ -58,10 +55,14 @@ function App() {
       {error && <p>Error :-(</p>}
       {data && (
         <div>
-          <h1>Search results for "{input}"</h1>
+          <h1>{data.summary.title}</h1>
           <div>
-            {data.map((result: any, index) => (
-              <p key={index}>{removeTags(result.title)}</p>
+            <ReactMarkdown>{data.summary.introduction_summary}</ReactMarkdown>
+          </div>
+          <div>{data.research_findings_summary}</div>
+          <div>
+            {data.works_partial.map((result: any, index) => (
+              <p key={index}>{result.title + ` (${result.pub_year})`}</p>
             ))}
           </div>
         </div>
